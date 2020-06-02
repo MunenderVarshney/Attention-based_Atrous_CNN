@@ -30,7 +30,8 @@ class DataGenerator(object):
         # Load data
         load_time = time.time()
         hf = h5py.File(hdf5_path, 'r')
-
+        print("hf value ", hf) 
+        print("hf value ", hf['filename'])
         self.audio_names = np.array([s.decode() for s in hf['filename'][:]])
         self.x = hf['feature'][:]
         self.scene_labels = [s.decode() for s in hf['scene_label'][:]]

@@ -7,7 +7,6 @@ import h5py
 import math
 import time
 import logging
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,7 +22,7 @@ import config
 from torch.autograd import Variable
 
 Model = CnnPooling_Attention
-batch_size = 16
+batch_size = 32
 
 
 def evaluate(model, generator, data_type, devices, max_iteration, cuda):
@@ -189,10 +188,8 @@ def train(args):
                               dev_validate_csv=dev_validate_csv)
 
     # Optimizer
-    lr = 1e-3
-    optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.)
-
-
+    lr = 5e-4
+    optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=6e-4)
 
     train_bgn_time = time.time()
 

@@ -88,10 +88,15 @@ class EmbeddingLayers_pooling(nn.Module):
         (_, seq_len, mel_bins) = input.shape
         x = input.view(-1, 1, seq_len, mel_bins)
         """(samples_num, feature_maps, time_steps, freq_num)"""
+        print("Input size at conv one ", x.size())
         x = F.relu(self.bn1(self.conv1(x)))
+        print("Input size at conv two ", x.size())
         x = F.relu(self.bn2(self.conv2(x)))
+        print("Input size at conv three ", x.size())
         x = F.relu(self.bn3(self.conv3(x)))
+        print("Input size at conv 4 ", x.size())
         x = F.relu(self.bn4(self.conv4(x)))
+        print("Input size at output ", x.size())
         return x
 
 class CnnPooling_Max(nn.Module):
@@ -147,6 +152,7 @@ class CnnPooling_Attention(nn.Module):
         """(samples_num, feature_maps, time_steps, freq_num)"""
         x = self.emb(input)
         output = self.attention(x)
+        print("Idggfghrf ", output.size())
         return output
 
 
@@ -188,12 +194,15 @@ class Attention2d(nn.Module):
         """input: (samples_num, channel, time_steps, freq_bins)
         """
         att = self.att(x)
+        print("atttttttt ", att.size())
         att = self.activate(att, self.att_activation)
         cla = self.cla(x)
         cla = self.activate(cla, self.cla_activation)
+        print("claaaaaa ", cla.size())
         # (samples_num, channel, time_steps * freq_bins)
         att = att.view(att.size(0), att.size(1), att.size(2) * att.size(3))
         cla = cla.view(cla.size(0), cla.size(1), cla.size(2) * cla.size(3))
+        print("claaaaaa ", cla.size())
         epsilon = 0.1 # 1e-7
         att = torch.clamp(att, epsilon, 1. - epsilon)
         norm_att = att / torch.sum(att, dim=2)[:, :, None]

@@ -46,28 +46,64 @@ def init_bn(bn):
     bn.bias.data.fill_(0.)
     bn.weight.data.fill_(1.)
 
-
-
 class EmbeddingLayers_pooling(nn.Module):
     def __init__(self):
         super(EmbeddingLayers_pooling, self).__init__()
-
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64,
+        
+        self.conv0 = nn.Conv2d(in_channels=1, out_channels=64,
                                kernel_size=(5, 5), stride=(1, 1),  dilation=1,
                                padding=(2, 2), bias=False)
 
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128,
-                               kernel_size=(5, 5), stride=(1, 1),  dilation=2,
-                               padding=(4, 4), bias=False)
+        self.conv1 = nn.Conv2d(in_channels=64, out_channels=64,
+                               kernel_size=(3, 3), stride=(1, 1),  dilation=1,
+                               padding=(1, 1), bias=False)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=64,
+                               kernel_size=(3, 3), stride=(1, 1),  dilation=1,
+                               padding=(1, 1), bias=False)
 
-        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256,
-                               kernel_size=(5, 5), stride=(1, 1),  dilation=4,
-                               padding=(8, 8), bias=False)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=64,
+                               kernel_size=(3, 3), stride=(1, 1),  dilation=1,
+                               padding=(1, 1), bias=False)
+        self.conv4 = nn.Conv2d(in_channels=64, out_channels=64,
+                               kernel_size=(3, 3), stride=(1, 1),  dilation=1,
+                               padding=(1, 1), bias=False)
+        
+        # self.short =nn.Conv2d(in_channels=64, out_channels=128,
+        #                        kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+        #                        padding=(0, 0), bias=False)
 
-        self.conv4 = nn.Conv2d(in_channels=256, out_channels=512,
-                               kernel_size=(5, 5), stride=(1, 1),  dilation=8,
-                               padding=(16, 16), bias=False)
+        self.conv5 = nn.Conv2d(in_channels=64, out_channels=128,
+                               kernel_size=(3, 3), stride=(2, 2),  dilation=1,
+                               padding=(1, 1), bias=False)
+        self.conv6 = nn.Conv2d(in_channels=128, out_channels=128,
+                               kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+                               padding=(0, 0), bias=False)
 
+        self.conv7 = nn.Conv2d(in_channels=128, out_channels=128,
+                               kernel_size=(3, 3), stride=(1, 1),  dilation=1,
+                               padding=(1, 1), bias=False)
+        self.conv8 = nn.Conv2d(in_channels=128, out_channels=128,
+                               kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+                               padding=(0, 0), bias=False)
+       # 4 block , two pooling 
+        # self.short1 =nn.Conv2d(in_channels=128, out_channels=256,
+        #                        kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+        #                        padding=(0, 0), bias=False)
+
+        self.conv9 = nn.Conv2d(in_channels=128, out_channels=256,
+                               kernel_size=(3, 3), stride=(2, 2),  dilation=1,
+                               padding=(1, 1), bias=False)
+        self.conv10 = nn.Conv2d(in_channels=256, out_channels=256,
+                               kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+                               padding=(0, 0), bias=False)
+
+        self.conv11 = nn.Conv2d(in_channels=256, out_channels=512,
+                               kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+                               padding=(0, 0), bias=False)
+        self.conv12 = nn.Conv2d(in_channels=512, out_channels=512,
+                               kernel_size=(1, 1), stride=(1, 1),  dilation=1,
+                               padding=(0, 0), bias=False)                               
+                                             
         self.bn1 = nn.BatchNorm2d(64)
         self.bn2 = nn.BatchNorm2d(128)
         self.bn3 = nn.BatchNorm2d(256)
@@ -75,23 +111,52 @@ class EmbeddingLayers_pooling(nn.Module):
         self.init_weights()
 
     def init_weights(self):
+        init_layer(self.conv0)
         init_layer(self.conv1)
         init_layer(self.conv2)
         init_layer(self.conv3)
         init_layer(self.conv4)
+        init_layer(self.conv5)
+        init_layer(self.conv6)
+        init_layer(self.conv7)
+        init_layer(self.conv8)
+        init_layer(self.conv9)
+        init_layer(self.conv10)
+        init_layer(self.conv11)
+        init_layer(self.conv12)
         init_bn(self.bn1)
         init_bn(self.bn2)
         init_bn(self.bn3)
         init_bn(self.bn4)
-
+    
     def forward(self, input, return_layers=False):
         (_, seq_len, mel_bins) = input.shape
         x = input.view(-1, 1, seq_len, mel_bins)
         """(samples_num, feature_maps, time_steps, freq_num)"""
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
-        x = F.relu(self.bn4(self.conv4(x)))
+        #print("Input size at conv one ", x.size())
+        x = F.relu(self.bn1(self.conv0(x))) 
+        identity  = x
+        x = F.relu(self.bn1(self.conv1(x))) 
+        x = F.relu(self.bn1(self.conv2(x)) + identity) 
+        identity = x   
+        x = F.relu(self.bn1(self.conv3(x))) 
+        x = F.relu(self.bn1(self.conv4(x)) + identity) 
+        #x = F.relu(self.bn2(self.short(x)))
+        x = F.relu(self.bn2(self.conv5(x)))
+        x = F.relu(self.bn2(self.conv6(x)) )
+        #print("conv 6 size at output ", x.size())
+        identity = x
+        x = F.relu(self.bn2(self.conv7(x)))
+        x = F.relu(self.bn2(self.conv8(x)) + identity)  
+        #x = F.relu(self.bn3(self.short1(x)))
+        x = F.relu(self.bn3(self.conv9(x)))
+        x = F.relu(self.bn3(self.conv10(x)) ) 
+        #identity = x
+        #print("conv 10 size at output ", x.size())
+        x = F.relu(self.bn4(self.conv11(x)))
+        #print("conv 11 size at output ", x.size())
+        x = F.relu(self.bn4(self.conv12(x)) )
+        #print("Output size at conv two ", x.size())
         return x
 
 class CnnPooling_Max(nn.Module):
@@ -147,6 +212,7 @@ class CnnPooling_Attention(nn.Module):
         """(samples_num, feature_maps, time_steps, freq_num)"""
         x = self.emb(input)
         output = self.attention(x)
+        # print("Idggfghrf ", output.size())
         return output
 
 
@@ -188,12 +254,15 @@ class Attention2d(nn.Module):
         """input: (samples_num, channel, time_steps, freq_bins)
         """
         att = self.att(x)
+        # print("atttttttt ", att.size())
         att = self.activate(att, self.att_activation)
         cla = self.cla(x)
         cla = self.activate(cla, self.cla_activation)
+        # print("claaaaaa ", cla.size())
         # (samples_num, channel, time_steps * freq_bins)
         att = att.view(att.size(0), att.size(1), att.size(2) * att.size(3))
         cla = cla.view(cla.size(0), cla.size(1), cla.size(2) * cla.size(3))
+        # print("claaaaaa ", cla.size())
         epsilon = 0.1 # 1e-7
         att = torch.clamp(att, epsilon, 1. - epsilon)
         norm_att = att / torch.sum(att, dim=2)[:, :, None]
